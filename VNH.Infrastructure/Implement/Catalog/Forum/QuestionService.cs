@@ -1,11 +1,16 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
+using VNH.Application.Common.Contants;
 using VNH.Application.DTOs.Catalog.Forum.Question;
+using VNH.Application.DTOs.Catalog.Notifications;
 using VNH.Application.DTOs.Catalog.Posts;
 using VNH.Application.DTOs.Common;
 using VNH.Application.DTOs.Common.ResponseNotification;
+using VNH.Application.Implement.Catalog.NotificationServices;
 using VNH.Application.Interfaces.Catalog.Forum;
 using VNH.Domain;
 using VNH.Infrastructure.Implement.Common;
@@ -18,15 +23,17 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
 
         private readonly UserManager<User> _userManager;
         private readonly VietNamHistoryContext _dataContext;
+        private readonly INotificationService _notificationService;
         private readonly IMapper _mapper;
 
         public QuestionService(UserManager<User> userManager,
-            IMapper mapper,
+            IMapper mapper, INotificationService notificationService,
            VietNamHistoryContext vietNamHistoryContext)
         {
             _userManager = userManager;
             _dataContext = vietNamHistoryContext;
             _mapper = mapper;
+            _notificationService = notificationService;
         }
 
 
@@ -167,7 +174,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
             question.ViewNumber += 1;
             questionResponse.ViewNumber += 1;
             questionResponse.SaveNumber = await _dataContext.QuestionSaves.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
-            questionResponse.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
+            questionResponse.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.Equals(question.Id) && !x.IsDeleted).CountAsync();
             questionResponse.LikeNumber = await _dataContext.QuestionLikes.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
 
             _dataContext.Questions.Update(question);
@@ -184,7 +191,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
             foreach (var item in questions)
             {
                 var question = _mapper.Map<QuestionResponseDto>(item);
-                question.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.ToString() == question.Id).CountAsync();
+                question.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.ToString() == question.Id && !x.IsDeleted).CountAsync();
                 question.SaveNumber    = await _dataContext.QuestionSaves.Where(x => x.QuestionId.ToString() == question.Id).CountAsync();
                 question.LikeNumber    = await _dataContext.QuestionLikes.Where(x => x.QuestionId.ToString() == question.Id).CountAsync();
 
@@ -248,7 +255,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
 
 
         }
-        public async Task<ApiResult<NumberReponse>> GetSave(QuestionFpkDto questionFpk)
+        public async Task<ApiResult<NumberReponse>> GetSave(QuestionFpkDto questionFpk) 
         {
             var question = await _dataContext.Questions.FirstOrDefaultAsync(x => x.Id.Equals(Guid.Parse(questionFpk.QuestionId)) && !x.IsDeleted);
             var number = await _dataContext.QuestionSaves.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
@@ -355,12 +362,25 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
             var likeNumber = await _dataContext.QuestionLikes.Where(x => x.QuestionId == question.Id).CountAsync();
             if (check is null)
             {
+                var user = await _dataContext.User.FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == question.AuthorId);
                 var like = new QuestionLike()
                 {
                     Id = Guid.NewGuid(),
                     QuestionId = question.Id,
                     UserId = Guid.Parse(questionFpk.UserId)
                 };
+                var noti = new NotificationDto()
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = question.AuthorId ?? Guid.NewGuid(),
+                    IdObject = question.Id,
+                    Content = ConstantNofication.LikeQuestion(user?.Fullname ?? ""),
+                    Date = DateTime.Now,
+                    Url = ConstantUrl.UrlQuestionDetail,
+                    NotificationId = Guid.NewGuid()
+                };
+                await _notificationService.AddNotificationDetail(noti);
+
                 _dataContext.QuestionLikes.Add(like);
                 await _dataContext.SaveChangesAsync();
                 return new ApiSuccessResult<NumberReponse>(new() { Check = true, Quantity = likeNumber + 1 });
@@ -377,6 +397,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
         public async Task<ApiResult<List<QuestionResponseDto>>> GetMyQuestion(string id)
         {
             var questions = await _dataContext.Questions.Where(x => x.AuthorId.Equals(Guid.Parse(id)) && !x.IsDeleted).ToListAsync();
+            var user = await _dataContext.User.Where(x => !x.IsDeleted && x.Id.ToString().Equals(id)).FirstOrDefaultAsync();
             var result = new List<QuestionResponseDto>();
             foreach (var item in questions)
             {
@@ -384,6 +405,12 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
                 question.SaveNumber = await _dataContext.QuestionSaves.Where(x => x.QuestionId.Equals(item.Id)).CountAsync();
                 question.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.Equals(item.Id)).CountAsync();
                 question.LikeNumber = await _dataContext.QuestionLikes.Where(x => x.QuestionId.Equals(item.Id)).CountAsync();
+                if (user is not null)
+                {
+                    question.UserShort.FullName = user.Fullname;
+                    question.UserShort.Id = user.Id;
+                    question.UserShort.Image = user.Image;
+                }
                 result.Add(question);
             }
 
@@ -459,18 +486,18 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
                     item.UserShort.Image = userShort.Image;
                 }
                 questions.Add(item);
-            }
+            } 
             return new ApiSuccessResult<List<QuestionResponseDto>>(questions);
         }
 
         public async Task<ApiResult<List<QuestionResponseDto>>> GetMyQuestionSaved(string id)
         {
             Guid userId = Guid.Parse(id);
-            var users = await _dataContext.User.ToListAsync();
+            var users = await _dataContext.User.Where(x => !x.IsDeleted).ToListAsync();
 
             var questions = await(
                 from questionSave in _dataContext.QuestionSaves
-                join question in _dataContext.Questions on questionSave.QuestionId equals question.Id
+                join question in _dataContext.Questions.Where(x=>!x.IsDeleted) on questionSave.QuestionId equals question.Id
                 where questionSave.UserId == userId
                 select question
             ).ToListAsync();
@@ -486,9 +513,9 @@ namespace VNH.Infrastructure.Implement.Catalog.Forum
                     question.UserShort.Id = userShort.Id;
                     question.UserShort.Image = userShort.Image;
                 }
-                question.SaveNumber = await _dataContext.QuestionSaves.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
-                question.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
-                question.LikeNumber = await _dataContext.QuestionLikes.Where(x => x.QuestionId.Equals(question.Id)).CountAsync();
+                question.SaveNumber = await _dataContext.QuestionSaves.Where(x => x.QuestionId.Equals(item.Id)).CountAsync();
+                question.CommentNumber = await _dataContext.Answers.Where(x => x.QuestionId.Equals(item.Id) && !x.IsDeleted).CountAsync();
+                question.LikeNumber = await _dataContext.QuestionLikes.Where(x => x.QuestionId.Equals(item.Id)).CountAsync();
                 result.Add(question);
             }
 

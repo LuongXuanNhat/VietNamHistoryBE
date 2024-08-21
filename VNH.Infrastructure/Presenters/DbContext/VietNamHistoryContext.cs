@@ -69,9 +69,18 @@ namespace VNH.Infrastructure.Presenters.Migrations
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            //if (!optionsBuilder.IsConfigured)
+            //{
+            //    optionsBuilder.UseSqlServer(SystemConstants.ConnectString);
+            //}
+
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer(SystemConstants.ConnectString);
+                optionsBuilder.UseSqlServer(SystemConstants.ConnectString,
+                    sqlServerOptionsBuilder =>
+                    {
+                        sqlServerOptionsBuilder.EnableRetryOnFailure(maxRetryCount: 5, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+                    });
             }
         }
 
@@ -537,24 +546,13 @@ namespace VNH.Infrastructure.Presenters.Migrations
 
             modelBuilder.Entity<MultipleChoice>(entity =>
             {
-
-                entity.HasOne(e => e.ExamHistories).WithOne(d => d.MultipleChoice).HasForeignKey<ExamHistory>(e => e.MultipleChoiceId);
-
                 entity.HasOne(e=>e.User).WithMany(d=>d.MultipleChoices).HasForeignKey(e=>e.UserId).HasConstraintName("FK__MultipleChoice__UserId__06CD04F7");
             });
-
-
-
             modelBuilder.Entity<ExamHistory>(entity =>
             {
-
-                entity.HasOne(e => e.MultipleChoice).WithOne(d => d.ExamHistories).HasForeignKey<ExamHistory>(e => e.MultipleChoiceId);
+                entity.HasKey(e => e.Id);
+                entity.HasOne(e=>e.MultipleChoice).WithMany(e=>e.ExamHistory).HasForeignKey(e => e.MultipleChoiceId).HasConstraintName("FK__MultipleChoice__ExamHistoryId__06CD04F7");
             });
-
-
-
-
-       
 
 
             modelBuilder.Entity<IdentityUserRole<Guid>>().ToTable("UserRoles").HasKey(x => new { x.UserId, x.RoleId });
@@ -563,7 +561,7 @@ namespace VNH.Infrastructure.Presenters.Migrations
             modelBuilder.Entity<IdentityUserToken<Guid>>().ToTable("AppUserTokens").HasKey(x => x.UserId);
 
             OnModelCreatingPartial(modelBuilder);
-            new SeedingData(modelBuilder).Seed();
+           // new SeedingData(modelBuilder).Seed();
         }
 
         partial void OnModelCreatingPartial(ModelBuilder modelBuilder);

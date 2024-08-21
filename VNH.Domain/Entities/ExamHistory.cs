@@ -20,24 +20,14 @@ namespace VNH.Domain.Entities
 
         public Guid UserId { get; set; }
 
-        public int Scores { get; set; }
-
+        public float Scores { get; set; }
       
         public int CompletionTime { get; set; }
 
         [Column(TypeName = "datetime")]
         public DateTime StarDate { get; set; }
 
-
-
-        [ForeignKey("MultipleChoiceId")]
+        [InverseProperty("ExamHistory")]
         public virtual MultipleChoice MultipleChoice { get; set; }
-
-
-
-
-
-
-
     }
 }

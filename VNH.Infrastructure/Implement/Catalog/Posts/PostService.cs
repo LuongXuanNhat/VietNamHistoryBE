@@ -1,13 +1,18 @@
 ﻿using AutoMapper;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using VNH.Application.Common.Contants;
+using VNH.Application.DTOs.Catalog.Notifications;
 using VNH.Application.DTOs.Catalog.Posts;
 using VNH.Application.DTOs.Catalog.Users;
 using VNH.Application.DTOs.Common;
 using VNH.Application.DTOs.Common.ResponseNotification;
+using VNH.Application.Implement.Catalog.NotificationServices;
 using VNH.Application.Interfaces.Common;
 using VNH.Application.Interfaces.Posts;
 using VNH.Domain;
@@ -26,10 +31,11 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
         private readonly IStorageService _storageService;
         private readonly IHubContext<ChatSignalR> _commentHubContext;
         private readonly IMapper _mapper;
+        private readonly INotificationService _notificationService;
 
         public PostService(UserManager<User> userManager, IMapper mapper, IImageService image,
             VietNamHistoryContext vietNamHistoryContext, IStorageService storageService,
-            IHubContext<ChatSignalR> chatSignalR)
+            IHubContext<ChatSignalR> chatSignalR, INotificationService notificationService)
         {
             _userManager = userManager;
             _mapper = mapper;
@@ -37,6 +43,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
             _dataContext = vietNamHistoryContext;
             _storageService = storageService;
             _commentHubContext = chatSignalR;
+            _notificationService = notificationService;
         }
         public async Task<ApiResult<PostResponseDto>> Create(CreatePostDto requestDto, string name)
         {
@@ -279,14 +286,27 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
             var likeNumber = await _dataContext.PostLikes.Where(x => x.PostId == post.Id).CountAsync();
             if (check is null)
             {
+                var user = await _dataContext.User.FirstOrDefaultAsync(x => !x.IsDeleted && x.Id == Guid.Parse(postFpk.UserId));
                 var like = new PostLike()
                 {
                     Id     = Guid.NewGuid(),
                     PostId = post.Id,
                     UserId = Guid.Parse(postFpk.UserId)
                 };
+                var noti = new NotificationDto()
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = post.UserId,
+                    IdObject = Guid.Parse(post.Id),
+                    Content = ConstantNofication.LikePost(user?.Fullname ?? ""),
+                    Date = DateTime.Now,
+                    Url = ConstantUrl.UrlPostDetail,
+                    NotificationId = Guid.NewGuid()
+                };
+
                 _dataContext.PostLikes.Add(like);
                 await _dataContext.SaveChangesAsync();
+                await _notificationService.AddNotificationDetail(noti);
                 return  new ApiSuccessResult<NumberReponse>(new() { Check = true, Quantity = likeNumber + 1});
             } else
             {
@@ -460,7 +480,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
                 .FirstOrDefault();
         }
 
-        public async Task<ApiResult<List<CommentPostDto>>> CreateComment(CommentPostDto comment)
+        public async Task<ApiResult<List<CommentPostDto>>> CreateComment(CommentPostDto comment, string userId)
         {
             var post = await _dataContext.Posts.FirstOrDefaultAsync(x=>x.SubId.Equals(comment.PostId) && !x.IsDeleted);
             if (post == null)
@@ -470,6 +490,25 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
             PostComment postComment = _mapper.Map<PostComment>(comment);
             postComment.PostId = post.Id;
             postComment.UpdatedAt = DateTime.Now;
+
+            if (userId != post.UserId.ToString())
+            {
+                var user = await _dataContext.User.FirstOrDefaultAsync(x => x.Id.ToString().Equals(userId) && !x.IsDeleted);
+                var noti = new NotificationDto()
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = post.UserId,
+                    IdObject = Guid.Parse(post.Id),
+                    Content = ConstantNofication.CommentPost(user?.Fullname ?? ""),
+                    Date = DateTime.Now,
+                    Url = ConstantUrl.UrlPostDetail,
+                    NotificationId = Guid.NewGuid()
+                };
+
+                await _notificationService.AddNotificationDetail(noti);
+            }
+            
+
             _dataContext.PostComments.Add(postComment);
             await _dataContext.SaveChangesAsync();
             var comments = await GetComment(comment.PostId);
@@ -518,6 +557,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
         {
             Guid userId = Guid.Parse(id);
             var users = await _dataContext.User.Where(x => !x.IsDeleted).ToListAsync();
+            var topics = await _dataContext.Topics.ToListAsync();
 
             var posts = await (
                 from postSave in _dataContext.PostSaves
@@ -537,6 +577,7 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
                     post.UserShort.Id = userShort.Id;
                     post.UserShort.Image = userShort.Image;
                 }
+                post.TopicName = topics.FirstOrDefault(x => x.Id == item.TopicId)?.Title ?? "";
                 result.Add(post);
             }
             return new ApiSuccessResult<List<PostResponseDto>>(result);
@@ -545,12 +586,22 @@ namespace VNH.Infrastructure.Implement.Catalog.Posts
         {
             var posts = await _dataContext.Posts.Where(x=>x.UserId.Equals(Guid.Parse(id)) && !x.IsDeleted).ToListAsync();
             var result = new List<PostResponseDto>();
+            var topics = await _dataContext.Topics.ToListAsync();
+            var user = await _dataContext.User.Where(x => !x.IsDeleted && x.Id.ToString().Equals(id)).FirstOrDefaultAsync();
+
             foreach (var item in posts)
             {
                 var post = _mapper.Map<PostResponseDto>(item);
                 post.SaveNumber = await _dataContext.PostSaves.Where(x => x.PostId.Equals(post.Id)).CountAsync();
                 post.CommentNumber = await _dataContext.PostComments.Where(x => x.PostId.Equals(post.Id)).CountAsync();
                 post.LikeNumber = await _dataContext.PostLikes.Where(x => x.PostId.Equals(post.Id)).CountAsync();
+                post.TopicName = topics.FirstOrDefault(x => x.Id == item.TopicId)?.Title ?? "";
+                if (user is not null)
+                {
+                    post.UserShort.FullName = user.Fullname;
+                    post.UserShort.Id = user.Id;
+                    post.UserShort.Image = user.Image;
+                }
                 result.Add(post);
             }
 

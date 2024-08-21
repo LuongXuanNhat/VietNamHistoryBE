@@ -12,8 +12,8 @@ using VNH.Infrastructure.Presenters.Migrations;
 namespace VNH.Infrastructure.Migrations
 {
     [DbContext(typeof(VietNamHistoryContext))]
-    [Migration("20231129161341_init")]
-    partial class init
+    [Migration("20231221023249_update_score")]
+    partial class update_score
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -146,6 +146,9 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool?>("MostConfirm")
                         .HasColumnType("bit");
 
@@ -170,6 +173,9 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("AnswerId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("QuestionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid?>("UserId")
@@ -203,6 +209,9 @@ namespace VNH.Infrastructure.Migrations
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime");
@@ -335,6 +344,12 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FilePath")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SubId")
                         .HasColumnType("nvarchar(max)");
 
@@ -347,8 +362,6 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<Guid?>("UserId")
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
@@ -376,6 +389,70 @@ namespace VNH.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("DocumentSave");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Entities.ExamHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("CompletionTime")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("MultipleChoiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<float>("Scores")
+                        .HasColumnType("real");
+
+                    b.Property<DateTime>("StarDate")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MultipleChoiceId")
+                        .IsUnique();
+
+                    b.ToTable("ExamHistory");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Entities.MultipleChoice", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasMaxLength(500)
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("WorkTime")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("MultipleChoise");
                 });
 
             modelBuilder.Entity("VNH.Domain.Entities.Notification", b =>
@@ -445,6 +522,30 @@ namespace VNH.Infrastructure.Migrations
                     b.HasIndex("TagId");
 
                     b.ToTable("PostTags");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Entities.QuizAnswer", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("QuizId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("isCorrect")
+                        .HasMaxLength(500)
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuizId");
+
+                    b.ToTable("QuizAnswer");
                 });
 
             modelBuilder.Entity("VNH.Domain.Exercise", b =>
@@ -524,6 +625,9 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<Guid?>("ExerciseId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("Title")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -545,25 +649,20 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime?>("CreatedAt")
-                        .HasColumnType("datetime");
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -584,6 +683,9 @@ namespace VNH.Infrastructure.Migrations
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
 
                     b.Property<string>("SubId")
                         .HasMaxLength(300)
@@ -765,6 +867,9 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<string>("SubId")
                         .HasColumnType("nvarchar(max)");
 
@@ -885,30 +990,16 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("Answer1")
+                    b.Property<string>("Content")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("Answer2")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Answer3")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Answer4")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Question")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("RightAnswer")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                    b.Property<Guid>("MultipleChoiceId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("MultipleChoiceId");
 
                     b.ToTable("Quiz");
                 });
@@ -938,49 +1029,49 @@ namespace VNH.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("d30e1353-0163-43c1-b757-7957981b0eda"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1878),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2693),
                             Description = " Báo cáo này được sử dụng khi người dùng chia sẻ nội dung cá nhân của bạn mà bạn cho rằng vi phạm quyền riêng tư của bạn.",
                             Title = "Nội dung vi phạm quy định về quyền riêng tư"
                         },
                         new
                         {
                             Id = new Guid("25752490-4ba5-4abb-ac3b-192205cd1b6e"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1890),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2703),
                             Description = "Sử dụng khi bạn thấy nội dung bài đăng chứa lời lẽ xúc phạm, kỳ thị hoặc có tính chất đe doạ đến người khác.",
                             Title = "Nội dung xấu, xúc phạm, hay kỳ thị"
                         },
                         new
                         {
                             Id = new Guid("bab1da58-6921-44b9-837f-c58d3998497b"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1892),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2705),
                             Description = "Dùng khi bạn thấy nội dung chứa hình ảnh hoặc video bạo lực hoặc đội nhóm xấu, hoặc khuyến khích hành vi bạo lực.",
                             Title = "Chứa nội dung bạo lực hoặc đội nhóm xấu"
                         },
                         new
                         {
                             Id = new Guid("349ed807-6107-436f-9a4c-9d6183fbc444"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1894),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2707),
                             Description = "Sử dụng khi bạn thấy nội dung chứa hình ảnh tự tử hoặc khuyến khích hành vi tự gây thương tổn.",
                             Title = "Chứa nội dung tự tử hoặc tự gây thương tổn"
                         },
                         new
                         {
                             Id = new Guid("c4ddb872-06c5-4779-a8a3-a55e5b2c5347"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1897),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2709),
                             Description = "Sử dụng khi bạn cho rằng Nội dung vi phạm quyền sở hữu trí tuệ hoặc bản quyền, chẳng hạn như sử dụng hình ảnh hoặc video mà bạn sở hữu mà không có sự cho phép.",
                             Title = "Nội dung vi phạm bản quyền hoặc sở hữu trí tuệ"
                         },
                         new
                         {
                             Id = new Guid("4a780087-9058-41c9-b84b-944d1a502010"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1899),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2711),
                             Description = "Sử dụng khi bạn thấy rằng nội dung chứa thông tin sai lệch, giả mạo hoặc vi phạm quy tắc về sự thật và trung thực.",
                             Title = "Bài đăng chứa thông tin sai lệch hoặc giả mạo"
                         },
                         new
                         {
                             Id = new Guid("3043c693-b3c9-453e-9876-31c943222576"),
-                            CreatedAt = new DateTime(2023, 11, 29, 23, 13, 41, 415, DateTimeKind.Local).AddTicks(1905),
+                            CreatedAt = new DateTime(2023, 12, 21, 9, 32, 49, 475, DateTimeKind.Local).AddTicks(2712),
                             Description = "Dùng khi bạn muốn báo cáo vì nó quá nhiều thông báo hoặc quảng cáo không mong muốn.",
                             Title = "Nội dung xuất hiện quá nhiều thông báo hoặc quảng cáo không mong muốn"
                         });
@@ -1009,21 +1100,21 @@ namespace VNH.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("a18be9c0-aa65-4af8-bd17-00bd9344e575"),
-                            ConcurrencyStamp = "c998aba1-7d62-483a-a82c-dffca027ed0e",
+                            ConcurrencyStamp = "9eb37f98-d073-495b-946d-d18b1c15a5b4",
                             Name = "admin",
                             NormalizedName = "admin"
                         },
                         new
                         {
                             Id = new Guid("cfafcfcd-d796-43f4-8ac0-ead43bd2f18a"),
-                            ConcurrencyStamp = "ae9a8b2b-7978-448e-a405-c884869f328d",
+                            ConcurrencyStamp = "f12f29f7-56ac-47f9-8675-8bef61d99f0b",
                             Name = "teacher",
                             NormalizedName = "teacher"
                         },
                         new
                         {
                             Id = new Guid("5d4e4081-91f8-4fc0-b8eb-9860b7849604"),
-                            ConcurrencyStamp = "ed14ffc7-e2d5-4165-a466-43faa539db13",
+                            ConcurrencyStamp = "b93e7829-5bb9-4570-8e34-fa89f8060520",
                             Name = "student",
                             NormalizedName = "student"
                         });
@@ -1114,6 +1205,140 @@ namespace VNH.Infrastructure.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Topic");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000000"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Lịch sử Cổ đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("9f908dfd-7aaa-46ef-8a9f-fcf99e7cea43"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ Trung đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("16091b4c-d7f1-40d7-aa89-4eb496a4795d"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Lịch sử thời kỳ thuộc địa"
+                        },
+                        new
+                        {
+                            Id = new Guid("687e1b3f-8a33-4b6a-9d8b-ecc1c49838de"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Việt Nam"
+                        },
+                        new
+                        {
+                            Id = new Guid("bcfc4e59-8377-421d-a47c-95002c7ac638"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ đổi mới"
+                        },
+                        new
+                        {
+                            Id = new Guid("b5adcc59-dd79-4c8e-8688-c7127f13433b"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Văn hóa và Nghệ thuật"
+                        },
+                        new
+                        {
+                            Id = new Guid("3e1629e6-9d3f-415a-a9e3-47251c4d6002"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Đời sống trong xã cổ Đông Sơn."
+                        },
+                        new
+                        {
+                            Id = new Guid("eedaea4e-15de-4dfb-ba8b-e6320581842a"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Vương quốc Âu Lạc."
+                        },
+                        new
+                        {
+                            Id = new Guid("49405f7b-d079-457f-8378-c1bcb3c751b0"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Triều đại Lý."
+                        },
+                        new
+                        {
+                            Id = new Guid("588533c0-232f-42e2-8f54-288f0f3d1d84"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Những thăng trầm của triều đại Lê"
+                        },
+                        new
+                        {
+                            Id = new Guid("4dce757c-c7c4-4237-a7aa-d7fcc94eb060"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ thuộc địa Pháp"
+                        },
+                        new
+                        {
+                            Id = new Guid("5c1e08a3-cdd0-40e4-acec-a9c8d795f2f0"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Phong trào Duy Tân"
+                        },
+                        new
+                        {
+                            Id = new Guid("91cd591b-79eb-411f-b762-aa32dfa4153c"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Pháp-Đông Dương"
+                        },
+                        new
+                        {
+                            Id = new Guid("cd00f319-706a-4bdd-a5ae-a3c2874ceb75"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Việt Nam"
+                        },
+                        new
+                        {
+                            Id = new Guid("7fa22316-501f-4a49-9b45-b8671d1420a6"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chính sách đổi mới"
+                        },
+                        new
+                        {
+                            Id = new Guid("8c22250b-c2a8-40a2-a91d-212f3f8ab4c9"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thách thức hiện đại hóa"
+                        },
+                        new
+                        {
+                            Id = new Guid("85f92f07-8597-4088-811e-8c2f101a1478"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Văn hóa dân gian"
+                        },
+                        new
+                        {
+                            Id = new Guid("a1afc68d-e877-47e0-afed-5c3d9d86a4f5"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nghệ thuật và văn hóa đương đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("14f5ea7b-f500-4b3d-818b-474acefdc280"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Giao lưu văn hóa quốc tế"
+                        },
+                        new
+                        {
+                            Id = new Guid("310ca0f2-3e7e-4db4-a8df-55b9a66e7f5e"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nhà Nguyễn"
+                        },
+                        new
+                        {
+                            Id = new Guid("5b0474a0-4886-4af6-845f-63b287a22b43"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Anh hùng"
+                        },
+                        new
+                        {
+                            Id = new Guid("81638220-c64a-4c27-bd54-117913b0e93d"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nhà Hậu Lê"
+                        });
                 });
 
             modelBuilder.Entity("VNH.Domain.TopicDetail", b =>
@@ -1170,6 +1395,9 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<string>("Introduction")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -1212,17 +1440,18 @@ namespace VNH.Infrastructure.Migrations
                         {
                             Id = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "4e2eef99-65a4-4b8a-a919-145ed60b15a2",
+                            ConcurrencyStamp = "d3d562fc-7fb1-41fa-94da-dfc2b0436a2d",
                             DateOfBirth = new DateTime(2002, 3, 18, 0, 0, 0, 0, DateTimeKind.Local),
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
                             Fullname = "Lương Xuân Nhất",
                             Gender = 0,
                             Image = "",
+                            IsDeleted = false,
                             LockoutEnabled = false,
                             NormalizedEmail = "onionwebdev@gmail.com",
                             NormalizedUserName = "admin",
-                            PasswordHash = "AQAAAAEAACcQAAAAEAL81EjrI0KYNGldHCVGr6VWAAG6C3NTtw/mpPYP8v1ClFiJBnsTwh8zzWucfocLyQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAENTB4k3TjUDNYD/3wADRWq8x4L7dDbaAZb1gxjQwsZJLyD7OFN40lPu1Z9xgH58OUA==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TwoFactorEnabled = false,
@@ -1371,6 +1600,29 @@ namespace VNH.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("VNH.Domain.Entities.ExamHistory", b =>
+                {
+                    b.HasOne("VNH.Domain.Entities.MultipleChoice", "MultipleChoice")
+                        .WithOne("ExamHistories")
+                        .HasForeignKey("VNH.Domain.Entities.ExamHistory", "MultipleChoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MultipleChoice");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Entities.MultipleChoice", b =>
+                {
+                    b.HasOne("VNH.Domain.User", "User")
+                        .WithMany("MultipleChoices")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK__MultipleChoice__UserId__06CD04F7");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("VNH.Domain.Entities.NotificationDetail", b =>
                 {
                     b.HasOne("VNH.Domain.Entities.Notification", "Notification")
@@ -1409,6 +1661,18 @@ namespace VNH.Infrastructure.Migrations
                     b.Navigation("Post");
 
                     b.Navigation("Tag");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Entities.QuizAnswer", b =>
+                {
+                    b.HasOne("VNH.Domain.Quiz", "Quiz")
+                        .WithMany("QuizAnswers")
+                        .HasForeignKey("QuizId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("FK__QuizAnswers__QuizId__1AD3FVA4");
+
+                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("VNH.Domain.Exercise", b =>
@@ -1659,13 +1923,14 @@ namespace VNH.Infrastructure.Migrations
 
             modelBuilder.Entity("VNH.Domain.Quiz", b =>
                 {
-                    b.HasOne("VNH.Domain.Exercise", "IdNavigation")
-                        .WithOne("Quiz")
-                        .HasForeignKey("VNH.Domain.Quiz", "Id")
+                    b.HasOne("VNH.Domain.Entities.MultipleChoice", "MultipleChoice")
+                        .WithMany("Quiz")
+                        .HasForeignKey("MultipleChoiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
-                        .HasConstraintName("FK__Quiz__Id__29221CFB");
+                        .HasConstraintName("FK__MultipleChoice__Id__07C12930");
 
-                    b.Navigation("IdNavigation");
+                    b.Navigation("MultipleChoice");
                 });
 
             modelBuilder.Entity("VNH.Domain.Search", b =>
@@ -1750,6 +2015,14 @@ namespace VNH.Infrastructure.Migrations
                     b.Navigation("DocumentSaves");
                 });
 
+            modelBuilder.Entity("VNH.Domain.Entities.MultipleChoice", b =>
+                {
+                    b.Navigation("ExamHistories")
+                        .IsRequired();
+
+                    b.Navigation("Quiz");
+                });
+
             modelBuilder.Entity("VNH.Domain.Entities.Notification", b =>
                 {
                     b.Navigation("NotificationDetails");
@@ -1758,8 +2031,6 @@ namespace VNH.Infrastructure.Migrations
             modelBuilder.Entity("VNH.Domain.Exercise", b =>
                 {
                     b.Navigation("ExerciseDetails");
-
-                    b.Navigation("Quiz");
                 });
 
             modelBuilder.Entity("VNH.Domain.Lesson", b =>
@@ -1798,6 +2069,11 @@ namespace VNH.Infrastructure.Migrations
                     b.Navigation("QuestionSaves");
 
                     b.Navigation("QuestionTag");
+                });
+
+            modelBuilder.Entity("VNH.Domain.Quiz", b =>
+                {
+                    b.Navigation("QuizAnswers");
                 });
 
             modelBuilder.Entity("VNH.Domain.Report", b =>
@@ -1842,6 +2118,8 @@ namespace VNH.Infrastructure.Migrations
                     b.Navigation("Documents");
 
                     b.Navigation("ExerciseDetails");
+
+                    b.Navigation("MultipleChoices");
 
                     b.Navigation("NotificationDetails");
 

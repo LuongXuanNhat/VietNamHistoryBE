@@ -12,42 +12,29 @@ namespace VNH.Domain.Entities
     [Table("MultipleChoise")]
     public partial class MultipleChoice
     {
-
         [Key]
         public Guid Id { get; set; }
 
         public string Title { get; set; }
-        [StringLength(500)]
         public string Description { get; set; }
-        [StringLength(500)]
 
         [Column(TypeName = "datetime")]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
-
 
         [Column(TypeName = "datetime")]
         public DateTime? UpdatedAt { get; set; }
 
         public int WorkTime { get; set; }
 
-
         public Guid UserId { get; set; }
 
-    
-
-        
         [InverseProperty("MultipleChoice")]
         public virtual ICollection<Quiz> Quiz { get; set; }
-
 
         [ForeignKey("UserId")]
         public virtual User User { get; set; }
 
         [InverseProperty("MultipleChoice")]
-        public virtual ExamHistory ExamHistories { get; set; }
-
-
-
-
+        public virtual ICollection<ExamHistory> ExamHistory { get; set; }
     }
 }

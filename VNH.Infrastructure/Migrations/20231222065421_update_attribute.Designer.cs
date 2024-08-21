@@ -12,8 +12,8 @@ using VNH.Infrastructure.Presenters.Migrations;
 namespace VNH.Infrastructure.Migrations
 {
     [DbContext(typeof(VietNamHistoryContext))]
-    [Migration("20231215075132_add_file_path")]
-    partial class add_file_path
+    [Migration("20231222065421_update_attribute")]
+    partial class update_attribute
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -338,8 +338,10 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("datetime");
 
                     b.Property<string>("Description")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("DownloadNumber")
+                        .HasColumnType("int");
 
                     b.Property<string>("FileName")
                         .HasColumnType("nvarchar(max)");
@@ -354,15 +356,16 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime");
 
                     b.Property<Guid?>("UserId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<long>("ViewNumber")
+                        .HasColumnType("bigint");
 
                     b.HasKey("Id");
 
@@ -403,8 +406,8 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<Guid>("MultipleChoiceId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<int>("Scores")
-                        .HasColumnType("int");
+                    b.Property<float>("Scores")
+                        .HasColumnType("real");
 
                     b.Property<DateTime>("StarDate")
                         .HasColumnType("datetime");
@@ -427,13 +430,11 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
-                        .HasMaxLength(500)
                         .HasColumnType("datetime");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -649,20 +650,20 @@ namespace VNH.Infrastructure.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Description")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Image")
-                        .HasColumnType("text");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Url")
-                        .IsRequired()
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
@@ -688,8 +689,8 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("SubId")
-                        .HasMaxLength(300)
-                        .HasColumnType("nvarchar(300)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("Title")
                         .HasMaxLength(255)
@@ -874,8 +875,7 @@ namespace VNH.Infrastructure.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime");
@@ -1029,49 +1029,49 @@ namespace VNH.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("d30e1353-0163-43c1-b757-7957981b0eda"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9924),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(380),
                             Description = " Báo cáo này được sử dụng khi người dùng chia sẻ nội dung cá nhân của bạn mà bạn cho rằng vi phạm quyền riêng tư của bạn.",
                             Title = "Nội dung vi phạm quy định về quyền riêng tư"
                         },
                         new
                         {
                             Id = new Guid("25752490-4ba5-4abb-ac3b-192205cd1b6e"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9942),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(393),
                             Description = "Sử dụng khi bạn thấy nội dung bài đăng chứa lời lẽ xúc phạm, kỳ thị hoặc có tính chất đe doạ đến người khác.",
                             Title = "Nội dung xấu, xúc phạm, hay kỳ thị"
                         },
                         new
                         {
                             Id = new Guid("bab1da58-6921-44b9-837f-c58d3998497b"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9945),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(400),
                             Description = "Dùng khi bạn thấy nội dung chứa hình ảnh hoặc video bạo lực hoặc đội nhóm xấu, hoặc khuyến khích hành vi bạo lực.",
                             Title = "Chứa nội dung bạo lực hoặc đội nhóm xấu"
                         },
                         new
                         {
                             Id = new Guid("349ed807-6107-436f-9a4c-9d6183fbc444"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9948),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(403),
                             Description = "Sử dụng khi bạn thấy nội dung chứa hình ảnh tự tử hoặc khuyến khích hành vi tự gây thương tổn.",
                             Title = "Chứa nội dung tự tử hoặc tự gây thương tổn"
                         },
                         new
                         {
                             Id = new Guid("c4ddb872-06c5-4779-a8a3-a55e5b2c5347"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9950),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(406),
                             Description = "Sử dụng khi bạn cho rằng Nội dung vi phạm quyền sở hữu trí tuệ hoặc bản quyền, chẳng hạn như sử dụng hình ảnh hoặc video mà bạn sở hữu mà không có sự cho phép.",
                             Title = "Nội dung vi phạm bản quyền hoặc sở hữu trí tuệ"
                         },
                         new
                         {
                             Id = new Guid("4a780087-9058-41c9-b84b-944d1a502010"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9952),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(408),
                             Description = "Sử dụng khi bạn thấy rằng nội dung chứa thông tin sai lệch, giả mạo hoặc vi phạm quy tắc về sự thật và trung thực.",
                             Title = "Bài đăng chứa thông tin sai lệch hoặc giả mạo"
                         },
                         new
                         {
                             Id = new Guid("3043c693-b3c9-453e-9876-31c943222576"),
-                            CreatedAt = new DateTime(2023, 12, 15, 14, 51, 31, 700, DateTimeKind.Local).AddTicks(9954),
+                            CreatedAt = new DateTime(2023, 12, 22, 13, 54, 20, 961, DateTimeKind.Local).AddTicks(411),
                             Description = "Dùng khi bạn muốn báo cáo vì nó quá nhiều thông báo hoặc quảng cáo không mong muốn.",
                             Title = "Nội dung xuất hiện quá nhiều thông báo hoặc quảng cáo không mong muốn"
                         });
@@ -1100,21 +1100,21 @@ namespace VNH.Infrastructure.Migrations
                         new
                         {
                             Id = new Guid("a18be9c0-aa65-4af8-bd17-00bd9344e575"),
-                            ConcurrencyStamp = "45b270c6-0bb5-410e-a37d-58ce8b0e95bf",
+                            ConcurrencyStamp = "7384f037-6d8d-48a6-a154-195d3a5db7ab",
                             Name = "admin",
                             NormalizedName = "admin"
                         },
                         new
                         {
                             Id = new Guid("cfafcfcd-d796-43f4-8ac0-ead43bd2f18a"),
-                            ConcurrencyStamp = "6ee005b6-1aef-4955-ae04-5e15d2687fac",
+                            ConcurrencyStamp = "a6163b8e-97ec-498b-8fd9-e465ff3543e1",
                             Name = "teacher",
                             NormalizedName = "teacher"
                         },
                         new
                         {
                             Id = new Guid("5d4e4081-91f8-4fc0-b8eb-9860b7849604"),
-                            ConcurrencyStamp = "0cffc651-df2c-4707-880b-692f861a1508",
+                            ConcurrencyStamp = "fd6f7cf8-8977-4b47-85a9-22d25d605913",
                             Name = "student",
                             NormalizedName = "student"
                         });
@@ -1205,6 +1205,140 @@ namespace VNH.Infrastructure.Migrations
                     b.HasIndex("AuthorId");
 
                     b.ToTable("Topic");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000000"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Lịch sử Cổ đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("80bc02ad-9401-4280-a76d-9fa5f7813dd1"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ Trung đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("5c414d41-5620-48a4-88c7-61c9a0174243"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Lịch sử thời kỳ thuộc địa"
+                        },
+                        new
+                        {
+                            Id = new Guid("fd826d64-1f87-436d-82c9-7009d2571199"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Việt Nam"
+                        },
+                        new
+                        {
+                            Id = new Guid("208c6340-0a32-492f-afcb-e522ee62a379"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ đổi mới"
+                        },
+                        new
+                        {
+                            Id = new Guid("45b5a102-1a0f-4a01-b3ad-87033c628a74"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Văn hóa và Nghệ thuật"
+                        },
+                        new
+                        {
+                            Id = new Guid("30006f7c-d22b-4f57-a4a0-2004bbd7cc5d"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Đời sống trong xã cổ Đông Sơn."
+                        },
+                        new
+                        {
+                            Id = new Guid("8b2d71a5-ccfd-45ae-9bf3-565b56b73931"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Vương quốc Âu Lạc."
+                        },
+                        new
+                        {
+                            Id = new Guid("faa13d37-2f3a-447b-92ab-0a26126273e8"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Triều đại Lý."
+                        },
+                        new
+                        {
+                            Id = new Guid("52463519-05b1-4ad8-a501-ce6073592f7b"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Những thăng trầm của triều đại Lê"
+                        },
+                        new
+                        {
+                            Id = new Guid("3a5050ee-fc0c-4063-b81e-4dbd58bd1bf2"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thời kỳ thuộc địa Pháp"
+                        },
+                        new
+                        {
+                            Id = new Guid("3167df9b-f1d8-4da8-a719-2d9c72618788"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Phong trào Duy Tân"
+                        },
+                        new
+                        {
+                            Id = new Guid("e932683e-fa11-4adb-8409-93fb40e23315"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Pháp-Đông Dương"
+                        },
+                        new
+                        {
+                            Id = new Guid("cc7d45d9-1ffb-460e-9966-8a81e8803896"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chiến tranh Việt Nam"
+                        },
+                        new
+                        {
+                            Id = new Guid("92d0fb18-3849-46a7-b6b0-fe76898549a1"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Chính sách đổi mới"
+                        },
+                        new
+                        {
+                            Id = new Guid("d4a56cbc-e450-4323-be8f-a0606ed5dfe5"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Thách thức hiện đại hóa"
+                        },
+                        new
+                        {
+                            Id = new Guid("493af5b6-a3f9-45b4-a2e4-25feef7ad6d8"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Văn hóa dân gian"
+                        },
+                        new
+                        {
+                            Id = new Guid("570b164e-e22e-464c-b224-d2a0309e3065"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nghệ thuật và văn hóa đương đại"
+                        },
+                        new
+                        {
+                            Id = new Guid("dd41bdc9-d9d0-4e4f-a8f7-7066fbda0cdc"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Giao lưu văn hóa quốc tế"
+                        },
+                        new
+                        {
+                            Id = new Guid("987d7996-c324-4585-b86a-cb2a13e2171d"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nhà Nguyễn"
+                        },
+                        new
+                        {
+                            Id = new Guid("301eba8b-5332-4501-ae39-4a0475784012"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Anh hùng"
+                        },
+                        new
+                        {
+                            Id = new Guid("68b43a88-5ef2-494a-b0fe-5bb1705e0736"),
+                            AuthorId = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
+                            Title = "Nhà Hậu Lê"
+                        });
                 });
 
             modelBuilder.Entity("VNH.Domain.TopicDetail", b =>
@@ -1306,7 +1440,7 @@ namespace VNH.Infrastructure.Migrations
                         {
                             Id = new Guid("d1f771da-b318-42f8-a003-5a15614216f5"),
                             AccessFailedCount = 0,
-                            ConcurrencyStamp = "55a2d003-4617-4127-a4bd-c4481f8cf966",
+                            ConcurrencyStamp = "655f7435-dbfe-418e-a873-2a98f7518f62",
                             DateOfBirth = new DateTime(2002, 3, 18, 0, 0, 0, 0, DateTimeKind.Local),
                             Email = "admin@gmail.com",
                             EmailConfirmed = true,
@@ -1317,7 +1451,7 @@ namespace VNH.Infrastructure.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "onionwebdev@gmail.com",
                             NormalizedUserName = "admin",
-                            PasswordHash = "AQAAAAEAACcQAAAAEKnAYjbHRi72B0lSgpNfv3TRaGb+g5gR6F1k2loonAnTruWHDLF5W4wDjq2FaU8nPQ==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEOtQFl2yzdrxjnrsTdsQC9KSysBJv5jjIYf4CZbwHIO7kgkPifjNSf1I4MigYSkbRw==",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "",
                             TwoFactorEnabled = false,
